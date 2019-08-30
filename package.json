@@ -1,0 +1,33 @@
+{
+  "name": "gulp-static-site-bundler",
+  "version": "1.0.0",
+  "description": "A bundler for Static websites using Gulp.js",
+  "main": "index.js",
+  "author": "Hossein Rahimi",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "autoprefixer": "^9.6.1",
+    "babelify": "^10.0.0",
+    "browserify": "^16.5.0",
+    "cssnano": "^4.1.10",
+    "del": "^5.1.0",
+    "gulp": "^4.0.2",
+    "gulp-concat-css": "^3.1.0",
+    "gulp-hash-filename": "^2.0.1",
+    "gulp-inject": "^5.0.4",
+    "gulp-postcss": "^8.0.0",
+    "gulp-sass": "^4.0.2",
+    "gulp-serve": "^1.4.0",
+    "gulp-sourcemaps": "^2.6.5",
+    "jquery": "^3.4.1",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not op_mini all"
+  ]
+}
