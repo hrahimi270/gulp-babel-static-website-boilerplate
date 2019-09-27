@@ -10,7 +10,9 @@
     "@babel/preset-env": "^7.5.5",
     "autoprefixer": "^9.6.1",
     "babelify": "^10.0.0",
+    "bootstrap": "^4.3.1",
     "browserify": "^16.5.0",
+    "common-shakeify": "^0.6.2",
     "cssnano": "^4.1.10",
     "del": "^5.1.0",
     "gulp": "^4.0.2",
@@ -19,15 +21,12 @@
     "gulp-inject": "^5.0.4",
     "gulp-postcss": "^8.0.0",
     "gulp-sass": "^4.0.2",
-    "gulp-serve": "^1.4.0",
+    "gulp-sass-glob": "^1.1.0",
     "gulp-sourcemaps": "^2.6.5",
     "jquery": "^3.4.1",
+    "live-server": "^1.2.1",
+    "regenerator-runtime": "^0.13.3",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"
-  },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not op_mini all"
-  ]
+  }
 }
