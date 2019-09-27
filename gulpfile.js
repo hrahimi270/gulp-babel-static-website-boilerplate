@@ -2,6 +2,7 @@ const { src, dest, watch, series, parallel, task } = require('gulp')
 
 // js
 const browserify = require('browserify')
+const commonShake = require('common-shakeify')
 const source = require('vinyl-source-stream')
 const buffer = require('vinyl-buffer')
 const babelify = require('babelify')
@@ -9,16 +10,30 @@ const sourcemaps = require('gulp-sourcemaps')
 
 // css
 const concatCss = require('gulp-concat-css')
+const sassGlob = require('gulp-sass-glob')
 const sass = require('gulp-sass')
 const postcss = require('gulp-postcss')
 const autoprefixer = require('autoprefixer')
 const cssnano = require('cssnano')
 
 // others
-const serve = require('gulp-serve')
+const liveServer = require('live-server');
 const del = require('del')
 const inject = require('gulp-inject')
-const hash = require('gulp-hash-filename')
+// const hash = require('gulp-hash-filename')
+
+// variables
+var processors = [
+    autoprefixer({
+        overrideBrowserslist: [
+            ">0.2%",
+            "not dead",
+            "not op_mini all",
+            "cover 99.5%"
+        ]
+    }),
+    cssnano()
+];
 
 // clean build dest
 function cleanDest(done) {
@@ -28,8 +43,8 @@ function cleanDest(done) {
 
 // build development mode of javascripts
 function buildJavascriptDev() {
-    var bundler = browserify('src/js/index.js', { debug: true }).transform(babelify);
 
+    var bundler = browserify('src/js/index.js', { debug: true }).transform(babelify).plugin(commonShake);
     function rebundle() {
         return bundler
             .bundle()
@@ -38,28 +53,41 @@ function buildJavascriptDev() {
             .pipe(buffer())
             .pipe(sourcemaps.init({ loadMaps: true }))
             .pipe(sourcemaps.write('.'))
-            .pipe(hash({ "format": "{name}.{hash:8}{ext}" }))
+            // .pipe(hash({ "format": "{name}.{hash:8}{ext}" }))
             .pipe(dest('build/js'))
     };
 
     return rebundle()
 }
 
-// build development mode of css
-function buildStylesDev() {
-    var processors = [
-        autoprefixer(),
-        cssnano()
-    ];
-    return src('src/scss/main.scss')
-        .pipe(sourcemaps.init())
-        .pipe(sass().on('error', sass.logError))
-        .pipe(postcss(processors))
-        .pipe(concatCss('style.css'))
-        .pipe(hash({ "format": "{name}.{hash:8}{ext}" }))
-        .pipe(sourcemaps.write())
-        .pipe(dest('build/css'))
-
+// build development styles
+function buildScss() {
+    return new Promise((resolve) => {
+        src('src/scss/main.scss')
+            .pipe(sourcemaps.init())
+            .pipe(sassGlob())
+            .pipe(sass({
+                includePaths: ['node_modules']
+            }).on('error', sass.logError))
+            .pipe(postcss(processors))
+            .pipe(concatCss('main-styles.css'))
+            // .pipe(hash({ "format": "{name}.{hash:8}{ext}" }))
+            .pipe(sourcemaps.write())
+            .pipe(dest('build/css'))
+        resolve();
+    })
+}
+function buildCss() {
+    return new Promise((resolve) => {
+        src('src/css/*.css')
+            .pipe(sourcemaps.init())
+            .pipe(postcss(processors))
+            .pipe(concatCss('styles-customized.css'))
+            // .pipe(hash({ "format": "{name}.{hash:8}{ext}" }))
+            .pipe(sourcemaps.write())
+            .pipe(dest('build/css'))
+        resolve();
+    })
 }
 
 // copy html files
@@ -84,11 +112,28 @@ function watchFiles() {
 }
 
 // serve
-task('serve', serve('build'));
+task('serve', () => {
+    var params = {
+        port: 3000,
+        host: "0.0.0.0",
+        root: "build",
+        open: true,
+
+    };
+
+    // start the live server
+    liveServer.start(params);
+    watchFiles();
+});
 
 // main tasks
 function start() {
-    return series(cleanDest, copyHTML, parallel(buildJavascriptDev, buildStylesDev), injection, 'serve', watchFiles);
+    return series(cleanDest, copyHTML, parallel(buildJavascriptDev, buildScss, buildCss), injection, 'serve');
 }
+
 exports.start = start();
+exports.dev = () => { };
+exports.build = () => { }
+
+// default task
 exports.default = start();
