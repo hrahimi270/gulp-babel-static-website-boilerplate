@@ -188,7 +188,8 @@ function injection() {
 // watch for any, any change!
 function watchFiles() {
     watch('src/js/*.js', buildJavascriptDev, injection);
-    watch('src/scss/*.scss', buildStylesDev, injection);
+    watch('src/scss/*.scss', buildScssDev, injection);
+    watch('src/css/*.css', buildCssDev, injection);
     watch('src/pages/*.html', series(copyHTML, injection));
 }
 
