@@ -4,20 +4,23 @@ With this project, you can create stunning website with modern Javascript (ES6) 
 
 # Features
 
-  - Live server (auto reload the page)
-  - tree-shaking (What is tree-shaking?)
+  - Live server and auto-reload
+  - tree-shaking ([What is tree-shaking?](https://medium.com/@netxm/what-is-tree-shaking-de7c6be5cadd))
   - Using CSS or SCSS
-  - autoprefix and preprocessor styles
-  - import modules or packages from node_modules
-  - hash the filenames after final build
-  - watching files for any change
-  - inject css and js to html pages
+  - Autoprefix and preprocessor styles
+  - Import modules or packages from node_modules
+  - Hash the filenames after final build
+  - Watching files for any change
+  - Inject css and js to html pages
 
-I used browserify for bundle the Javsscript and Gulp.js for managing tasks.
+I used [browserify](http://browserify.org/) for bundle the Javsscript and [Gulp.js](https://gulpjs.com/) for managing tasks.
 
 ## How to use
 
 It's easy! Clone the project in first step.
+```sh
+git clone https://github.com/hrahimi270/gulp-babel-static-website-boilerplate.git
+```
 There is only **one** folder that you need to edit for your self, the `src` folder!
 You can see the full structire below:
 ```
