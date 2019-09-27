@@ -1,3 +1,10 @@
+/**
+ * don't delete these imports!
+ * It may crash your app!!!
+ */
+import 'regenerator-runtime/runtime';
 import './jquery';
 
-$('h1').css('color', 'green');
+/**
+ * import third-party packages here
+ */
