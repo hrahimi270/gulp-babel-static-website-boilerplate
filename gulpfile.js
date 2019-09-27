@@ -15,12 +15,13 @@ const sass = require('gulp-sass')
 const postcss = require('gulp-postcss')
 const autoprefixer = require('autoprefixer')
 const cssnano = require('cssnano')
+const cleanCSS = require('gulp-clean-css')
 
 // others
 const liveServer = require('live-server');
 const del = require('del')
 const inject = require('gulp-inject')
-// const hash = require('gulp-hash-filename')
+const hash = require('gulp-hash-filename')
 
 // variables
 var processors = [
@@ -41,7 +42,7 @@ function cleanDest(done) {
     return done();
 }
 
-// build development mode of javascripts
+// bundle javascripts
 function buildJavascriptDev() {
 
     var bundler = browserify('src/js/index.js', { debug: true }).transform(babelify).plugin(commonShake);
@@ -53,38 +54,118 @@ function buildJavascriptDev() {
             .pipe(buffer())
             .pipe(sourcemaps.init({ loadMaps: true }))
             .pipe(sourcemaps.write('.'))
-            // .pipe(hash({ "format": "{name}.{hash:8}{ext}" }))
+            .pipe(hash({ "format": "{name}{ext}" }))
+            .pipe(dest('build/js'))
+    };
+
+    return rebundle()
+}
+function buildJavascriptProd() {
+    var bundler = browserify('src/js/index.js', { debug: false }).transform(babelify).plugin(commonShake);
+    function rebundle() {
+        return bundler
+            .bundle()
+            .on('error', function (err) { console.error(err); this.emit('end'); })
+            .pipe(source('bundle.js'))
+            .pipe(buffer())
+            .pipe(hash({ "format": "{name}.{hash:8}{ext}" }))
+            .pipe(dest('build/js'))
+    };
+
+    return rebundle()
+}
+function buildJavascriptProdMinify() {
+    var bundler = browserify('src/js/index.js', { debug: false })
+        .transform(babelify)
+        .plugin(commonShake)
+        .plugin('tinyify');
+
+    function rebundle() {
+        return bundler
+            .bundle()
+            .on('error', function (err) { console.error(err); this.emit('end'); })
+            .pipe(source('bundle.js'))
+            .pipe(buffer())
+            .pipe(hash({ "format": "{name}.{hash:8}{ext}" }))
             .pipe(dest('build/js'))
     };
 
     return rebundle()
 }
 
-// build development styles
-function buildScss() {
+// bundle styles
+function buildScssDev() {
     return new Promise((resolve) => {
         src('src/scss/main.scss')
-            .pipe(sourcemaps.init())
             .pipe(sassGlob())
             .pipe(sass({
                 includePaths: ['node_modules']
             }).on('error', sass.logError))
             .pipe(postcss(processors))
             .pipe(concatCss('main-styles.css'))
-            // .pipe(hash({ "format": "{name}.{hash:8}{ext}" }))
-            .pipe(sourcemaps.write())
             .pipe(dest('build/css'))
         resolve();
     })
 }
-function buildCss() {
+function buildCssDev() {
     return new Promise((resolve) => {
         src('src/css/*.css')
-            .pipe(sourcemaps.init())
             .pipe(postcss(processors))
             .pipe(concatCss('styles-customized.css'))
-            // .pipe(hash({ "format": "{name}.{hash:8}{ext}" }))
-            .pipe(sourcemaps.write())
+            .pipe(dest('build/css'))
+        resolve();
+    })
+}
+function buildScssProd() {
+    return new Promise((resolve) => {
+        src('src/scss/main.scss')
+            .pipe(sassGlob())
+            .pipe(sass({
+                includePaths: ['node_modules']
+            }).on('error', sass.logError))
+            .pipe(postcss(processors))
+            .pipe(concatCss('main-styles.css'))
+            .pipe(hash({ "format": "{name}.{hash:8}{ext}" }))
+            .pipe(dest('build/css'))
+        resolve();
+    })
+}
+function buildCssProd() {
+    return new Promise((resolve) => {
+        src('src/css/*.css')
+            .pipe(postcss(processors))
+            .pipe(concatCss('styles-customized.css'))
+            .pipe(hash({ "format": "{name}.{hash:8}{ext}" }))
+            .pipe(dest('build/css'))
+        resolve();
+    })
+}
+function buildScssProdMinify() {
+    return new Promise((resolve) => {
+        src('src/scss/main.scss')
+            .pipe(sassGlob())
+            .pipe(sass({
+                includePaths: ['node_modules']
+            }).on('error', sass.logError))
+            .pipe(postcss(processors))
+            .pipe(concatCss('main-styles.css'))
+            .pipe(cleanCSS({ debug: false }, (details) => {
+                console.log(`SCSS styles, from ${Math.round(details.stats.originalSize/1024)}kb gets to ${Math.round(details.stats.minifiedSize/1024)}kb`)
+            }))
+            .pipe(hash({ "format": "{name}.{hash:8}{ext}" }))
+            .pipe(dest('build/css'))
+        resolve();
+    })
+}
+function buildCssProdMinify() {
+    return new Promise((resolve) => {
+        src('src/css/*.css')
+            .pipe(postcss(processors))
+            .pipe(concatCss('styles-customized.css'))
+            .pipe(cleanCSS({ debug: false }, (details) => {
+                console.log(`SCSS styles, from ${Math.round(details.stats.originalSize/1024)}kb gets to ${Math.round(details.stats.minifiedSize/1024)}kb`)
+            }))
+            .pipe(hash({ "format": "{name}.{hash:8}{ext}" }))
             .pipe(dest('build/css'))
         resolve();
     })
@@ -128,12 +209,18 @@ task('serve', () => {
 
 // main tasks
 function start() {
-    return series(cleanDest, copyHTML, parallel(buildJavascriptDev, buildScss, buildCss), injection, 'serve');
+    return series(cleanDest, copyHTML, parallel(buildJavascriptDev, buildScssDev, buildCssDev), injection, 'serve');
+}
+function dev() {
+    return series(cleanDest, copyHTML, parallel(buildJavascriptProd, buildScssProd, buildCssProd), injection);
+}
+function prod() {
+    return series(cleanDest, copyHTML, parallel(buildJavascriptProdMinify, buildScssProdMinify, buildCssProdMinify), injection);
 }
 
 exports.start = start();
-exports.dev = () => { };
-exports.build = () => { }
+exports.dev = dev();
+exports.build = prod();
 
 // default task
 exports.default = start();
