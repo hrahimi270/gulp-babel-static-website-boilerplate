@@ -5,6 +5,9 @@
   "main": "index.js",
   "author": "Hossein Rahimi",
   "license": "MIT",
+  "scripts": {
+    "prettier": "prettier --write \"./src/**/*.{js,css,scss,html}\""
+  },
   "dependencies": {
     "@babel/core": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
@@ -26,6 +29,7 @@
     "gulp-sourcemaps": "^2.6.5",
     "jquery": "^3.4.1",
     "live-server": "^1.2.1",
+    "prettier": "^1.18.2",
     "regenerator-runtime": "^0.13.3",
     "tinyify": "^2.5.1",
     "vinyl-buffer": "^1.0.1",
