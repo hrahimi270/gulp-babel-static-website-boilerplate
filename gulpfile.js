@@ -8,7 +8,7 @@ const buffer = require("vinyl-buffer");
 const babelify = require("babelify");
 const sourcemaps = require("gulp-sourcemaps");
 
-// css
+// assets
 const concatCss = require("gulp-concat-css");
 const sassGlob = require("gulp-sass-glob");
 const sass = require("gulp-sass");
@@ -16,6 +16,7 @@ const postcss = require("gulp-postcss");
 const autoprefixer = require("autoprefixer");
 const cssnano = require("cssnano");
 const cleanCSS = require("gulp-clean-css");
+const imagemin = require('gulp-imagemin');
 
 // others
 const liveServer = require("live-server");
@@ -50,7 +51,7 @@ function buildJavascriptDev() {
   function rebundle() {
     return bundler
       .bundle()
-      .on("error", function(err) {
+      .on("error", function (err) {
         console.error(err);
         this.emit("end");
       })
@@ -71,7 +72,7 @@ function buildJavascriptProd() {
   function rebundle() {
     return bundler
       .bundle()
-      .on("error", function(err) {
+      .on("error", function (err) {
         console.error(err);
         this.emit("end");
       })
@@ -92,7 +93,7 @@ function buildJavascriptProdMinify() {
   function rebundle() {
     return bundler
       .bundle()
-      .on("error", function(err) {
+      .on("error", function (err) {
         console.error(err);
         this.emit("end");
       })
@@ -109,12 +110,12 @@ function buildJavascriptProdMinify() {
 function buildScssDev() {
   return new Promise(resolve => {
     src("src/scss/main.scss")
-      .pipe(sassGlob())
       .pipe(
-        sass({
+        sass(/* {
           includePaths: ["node_modules"]
-        }).on("error", sass.logError)
+        } */).on("error", sass.logError)
       )
+      .pipe(sassGlob())
       .pipe(postcss(processors))
       .pipe(concatCss("main-styles.css"))
       .pipe(dest("build/css"));
@@ -206,6 +207,21 @@ function copyHTML() {
   return src("src/pages/*.html").pipe(dest("build"));
 }
 
+// copy images
+function copyImages() {
+  return src("src/images/*").pipe(dest("build/images"));
+}
+function copyImagesWithOptimization() {
+  return src("src/images/*")
+    .pipe(imagemin())
+    .pipe(dest("build/images"));
+}
+
+// copy fonts
+function copyFonts() {
+  return src("src/fonts/*").pipe(dest("build/fonts"));
+}
+
 // inject css and javascript
 function injection() {
   return src("build/*.html")
@@ -216,10 +232,12 @@ function injection() {
 
 // watch for any, any change!
 function watchFiles() {
-  watch("src/js/*.js", buildJavascriptDev, injection);
-  watch("src/scss/*.scss", buildScssDev, injection);
-  watch("src/css/*.css", buildCssDev, injection);
+  watch("src/js/*.js", buildJavascriptDev);
+  watch("src/scss/*.scss", buildScssDev);
+  watch("src/css/*.css", buildCssDev);
   watch("src/pages/*.html", series(copyHTML, injection));
+  watch("src/images/*", copyImages);
+  watch("src/fonts/*", copyFonts);
 }
 
 // serve
@@ -241,6 +259,8 @@ function start() {
   return series(
     cleanDest,
     copyHTML,
+    copyImages,
+    copyFonts,
     parallel(buildJavascriptDev, buildScssDev, buildCssDev),
     injection,
     "serve"
@@ -250,6 +270,8 @@ function dev() {
   return series(
     cleanDest,
     copyHTML,
+    copyImagesWithOptimization,
+    copyFonts,
     parallel(buildJavascriptProd, buildScssProd, buildCssProd),
     injection
   );
@@ -258,6 +280,8 @@ function prod() {
   return series(
     cleanDest,
     copyHTML,
+    copyImagesWithOptimization,
+    copyFonts,
     parallel(
       buildJavascriptProdMinify,
       buildScssProdMinify,
@@ -267,6 +291,7 @@ function prod() {
   );
 }
 
+// tasks
 exports.start = start();
 exports.dev = dev();
 exports.build = prod();
