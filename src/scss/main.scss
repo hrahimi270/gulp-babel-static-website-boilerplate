@@ -1,1 +1,14 @@
-@import "bootstrap/scss/bootstrap";
+// import bootstrap
+@import "../../node_modules/bootstrap/scss/bootstrap-reboot.scss";
+@import "../../node_modules/bootstrap/scss/bootstrap-grid.scss";
+@import "../../node_modules/bootstrap/scss/buttons";
+
+
+/*!
+ * default styles started from here
+ */
+@import './screen';
+
+body{
+    line-height: 2;
+}
